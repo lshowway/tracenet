@@ -1,6 +1,5 @@
 ### README
-### TraceNet: An Easy-to-understand and Robust Neural Architecture
-This repository is the official implementation of TraceNet: An Easy-to-understand and Robust Neural Architecture
+This repository is the official implementation of TraceNet
 #### Requirements
 To install requirements:
 > pip install -r requirements.txt
