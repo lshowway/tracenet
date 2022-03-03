@@ -32,7 +32,8 @@ grpcio==1.27.2
 h5py==2.10.0
 idna==2.9
 itsdangerous==1.1.0
-Jinja2==2.11.1
+# Jinja2==2.11.1
+jinja2>=2.11.3
 jmespath==0.9.5
 joblib==0.14.1
 Keras-Applications==1.0.8
@@ -42,12 +43,14 @@ Markdown==3.2.1
 MarkupSafe==1.1.1
 matplotlib==3.2.1
 mock==4.0.2
-nltk==3.5
+#nltk==3.5
+nltk>=3.6.6
 numpy==1.18.1
 pandas==1.0.3
 pefile==2019.4.18
-Pillow==7.0.0
-protobuf==3.11.3
+#Pillow==7.0.0
+Pillow>=9.0.0
+protobuf>=3.15.0
 PyInstaller==3.6
 pyparsing==2.4.7
 python-dateutil==2.8.1
@@ -69,7 +72,8 @@ tokenizers==0.5.2
 tqdm==4.43.0
 transformers==2.8.0
 tweet-preprocessor==0.5.0
-urllib3==1.25.8
+# urllib3==1.25.8
+urllib3>=1.26.5
 Werkzeug==1.0.0
 xlrd==1.2.0
 xlutils==2.0.0
