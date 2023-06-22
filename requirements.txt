@@ -1,81 +1,61 @@
-#torch==1.4.0+cpu
-#torchtext==0.6.0
-#torchvision==0.5.0+cpu
-# CUDA 10.1
-# pip install torch==1.4.0 torchvision==0.5.0
-# CPU only
-# pip install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-# tensorflow==1.13.1
-# tensorflow-estimator==1.13.0
-# install apex
-# git clone https://github.com/NVIDIA/apex
+## manually install apex
+# pip install --user --upgrade pip
 # cd apex
 # pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-absl-py==0.9.0
-altgraph==0.17
-aniso8601==8.0.0
-astor==0.8.1
-boto3==1.12.20
-botocore==1.15.20
-certifi==2019.11.28
-chardet==3.0.4
-click==7.1.1
-cycler==0.10.0
-dataclasses==0.7
-docutils==0.15.2
+## manually install this
+# pip install torch==1.7.0+cu110 torchvision==0.8.1+cu110 torchaudio==0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+# CUDA=11.0, python=3.6.5 (finetune), python=3.7.5(pre-training)
+# CUDA=11.6, python=3.9.9, pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
+tqdm==4.62.3
+numpy==1.19.5
+sklearn==0.0
+scikit-learn==0.24.2
+requests==2.26.0
+scipy==1.5.4
+sentencepiece==0.1.95
+tokenizers==0.9.4
+#dataclasses==0.8
 filelock==3.0.12
-Flask==1.1.1
-Flask-RESTful==0.3.8
-future==0.18.2
-gast==0.3.3
-grpcio==1.27.2
-h5py==2.10.0
-idna==2.9
-itsdangerous==1.1.0
-# Jinja2==2.11.1
-jinja2>=2.11.3
-jmespath==0.9.5
-joblib==0.14.1
-Keras-Applications==1.0.8
-Keras-Preprocessing==1.1.0
-kiwisolver==1.2.0
-Markdown==3.2.1
-MarkupSafe==1.1.1
-matplotlib==3.2.1
-mock==4.0.2
-#nltk==3.5
-nltk>=3.6.6
-# numpy==1.18.1
-numpy>=1.21
-pandas==1.0.3
-pefile==2019.4.18
-#Pillow==7.0.0
-Pillow>=9.0.0
-protobuf>=3.15.0
-PyInstaller==3.6
-pyparsing==2.4.7
-python-dateutil==2.8.1
-pytz==2019.3
-pywin32-ctypes==0.2.0
-regex==2020.2.20
-requests==2.23.0
-s3transfer==0.3.3
-sacremoses==0.0.38
-scikit-learn==0.22.2.post1
-scipy==1.4.1
-selenium==3.141.0
-sentencepiece==0.1.85
-six==1.14.0
-tensorboard==1.13.1
-tensorboardX==2.0
+six==1.15.0
+###pip install --upgrade google-api-python-client
+boto3==1.18.40
+botocore==1.21.40
+regex==2021.8.28
+tensorboardX==2.1
+matplotlib==3.3.4
+transformers==4.0.1
+setuptools==58.0.4
+click==7.1.2
+sacremoses==0.0.45
+wikimapper==0.1.5
+tagme==0.1.3
+wiktionaryparser==0.0.97
+Wikidata==0.7.0
+# torch==1.7.1
+emmental==0.0.8
+#bootleg==1.1.0.dev0
+ujson==4.0.2
+PyYAML==5.4.1
+pandas==0.25.3
+nltk==3.4.5
+progressbar==2.5
+jsonlines==1.2.0
+spacy==3.0.1
+pydantic==1.7.4
+argh==0.26.2
+colorama==0.4.4
 termcolor==1.1.0
-tokenizers==0.5.2
-tqdm==4.43.0
-transformers==2.8.0
-tweet-preprocessor==0.5.0
-# urllib3==1.25.8
-urllib3>=1.26.5
-Werkzeug==1.0.0
-xlrd==1.2.0
-xlutils==2.0.0
-xlwt==1.3.0
+flair==0.9
+segtok==1.5.10
+beautifulsoup4==4.10.0
+wget==3.2
+datasets==1.14.0
+pytest==5.3.0
+joblib==1.0.1
+overrides==3.1.0
+ipython==7.16.1
+packaging==21.0
+rdflib==5.0.0
+#torch==1.7.1
+tensorflow==2.6.2
+h5py==3.1.0
