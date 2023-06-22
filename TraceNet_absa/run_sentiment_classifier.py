@@ -25,10 +25,11 @@ from transformers import (
     XLNetTokenizer,
     get_linear_schedule_with_warmup,
 )
-from transformers import glue_compute_metrics as compute_metrics
+# from transformers import glue_compute_metrics as compute_metrics
 from data_utils import output_modes, processors, load_and_cache_examples
 from tracenet import XLNetTraceNetForSequenceClassification, RobertTraceNetForSequenceClassification
 from absa_modeling import RoBERTaForABSA
+from sklearn.metrics import f1_score
 
 
 try:
@@ -57,6 +58,12 @@ MODEL_CLASSES = {
     # "xlnet_tracenet": (XLNetConfig, XLNetTraceNetForSequenceClassification, XLNetTokenizer),
     "roberta_tracenet": (RobertaConfig, RoBERTaForABSA, RobertaTokenizer),
 }
+
+
+def f1(preds, labels):
+    f1 = f1_score(y_true=labels, y_pred=preds, average='micro')
+    results = {'micro-f1': f1}
+    return f1
 
 
 def get_args():
@@ -434,7 +441,7 @@ def evaluate(args, model, tokenizer, prefix="", datatype=None, evaluate=True):
             preds = np.argmax(preds, axis=1)
         else:
             raise ValueError("No other `output_mode` .")
-        result = compute_metrics('sst-2', preds, out_label_ids)
+        result = f1(preds, out_label_ids)
         results.update(result)
         if evaluate == 'dev':
             logger.info("***** Eval results {} *****".format(prefix))
