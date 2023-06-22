@@ -28,9 +28,7 @@ from transformers import (
 from transformers import glue_compute_metrics as compute_metrics
 from data_utils import output_modes, processors, load_and_cache_examples
 from tracenet import XLNetTraceNetForSequenceClassification, RobertTraceNetForSequenceClassification
-
-# from unilm.modeling import BertForSequenceClassification as UniLMForSequenceClassification
-# from unilm.modeling import BertTraceNetForSequenceClassification as UniLMTraceNetForSequenceClassification
+from absa_modeling import RoBERTaForABSA
 
 
 try:
@@ -49,18 +47,15 @@ except (AttributeError, ImportError):
 
 logger = logging.getLogger(__name__)
 
-# ALL_MODELS = sum(
-#     (tuple(conf.pretrained_config_archive_map.keys()) for conf in (BertConfig, RobertaConfig, XLNetConfig)), ()
-# )
 
 MODEL_CLASSES = {
     # "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
-    "roberta": (RobertaConfig, RobertaForSequenceClassification, RobertaTokenizer),
+    "roberta": (RobertaConfig, RoBERTaForABSA, RobertaTokenizer),
     # "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
     # "unilm": (None, UniLMForSequenceClassification, BertTokenizer),
     # "unilm_tracenet": (None, UniLMTraceNetForSequenceClassification, BertTokenizer),
     # "xlnet_tracenet": (XLNetConfig, XLNetTraceNetForSequenceClassification, XLNetTokenizer),
-    "roberta_tracenet": (RobertaConfig, RobertTraceNetForSequenceClassification, RobertaTokenizer),
+    "roberta_tracenet": (RobertaConfig, RoBERTaForABSA, RobertaTokenizer),
 }
 
 
@@ -356,7 +351,7 @@ def train(args, train_dataset, model, tokenizer):
             else:
                 loss.backward()
             if (step + 1) % args.logging_steps == 0:
-                evaluate(args, model, tokenizer, evaluate='test')
+                evaluate(args, model, tokenizer, datatype='test', evaluate=True)
             if (step + 1) % args.gradient_accumulation_steps == 0:
                 if args.fp16:
                     torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), args.max_grad_norm)
@@ -377,13 +372,13 @@ def train(args, train_dataset, model, tokenizer):
         tb_writer.close()
 
 
-def evaluate(args, model, tokenizer, prefix="", evaluate='dev'):
+def evaluate(args, model, tokenizer, prefix="", datatype=None, evaluate=True):
     eval_task_names = (args.task_name,)
     eval_outputs_dirs = (args.output_dir,)
 
     results = {}
     for eval_task, eval_output_dir in zip(eval_task_names, eval_outputs_dirs):
-        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, evaluate=evaluate)
+        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, dataset_type=datatype, evaluate=evaluate)
 
         if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(eval_output_dir)
@@ -571,7 +566,7 @@ def main():
 
     # Training
     if args.do_train:
-        train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
+        train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, dataset_type='train', evaluate=False)
         train(args, train_dataset, model, tokenizer)
     if not args.do_train and args.do_eval:
         logger.info("===========> inference ... ")
@@ -586,7 +581,7 @@ def main():
         for checkpoint in checkpoints:
             model = model_class.from_pretrained(checkpoint)
             model.to(args.device)
-            evaluate(args, model, tokenizer, evaluate='test')
+            evaluate(args, model, tokenizer, datatype='test', evaluate=True)
 
 
 if __name__ == "__main__":

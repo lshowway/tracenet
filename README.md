@@ -30,6 +30,8 @@ To train the model(s) in the paper, run this command (SST-5 dataset for example)
  
 > roberta-yelp: `python run_sentiment_classifier.py   --do_train   --do_eval   --output_dir  yelp_roberta/    --model_type roberta    --model_name_or_path roberta-base   --do_lower_case  --per_gpu_eval_batch_size 1024   --task_name yelp-5   --data_dir  ../dataset/yelp5/     --num_train_epochs 10.0   --logging_steps  300  --dropout_prob 0.1   --output_feature 0   --num_hubo_layers  3  --method  null  --seq_select_prob 0.0  --per_gpu_train_batch_size 64   --max_seq_length 256   --learning_rate 2e-5    --seed  42 `
 
+> roberta-laptop: `python run_sentiment_classifier.py   --do_train   --do_eval   --output_dir  laptop_roberta/    --model_type roberta    --model_name_or_path roberta-base   --do_lower_case  --per_gpu_eval_batch_size 512   --task_name sst-5   --data_dir  ../dataset/laptop/     --num_train_epochs 10.0   --logging_steps  300  --dropout_prob 0.0   --output_feature 0   --num_hubo_layers  3  --method  null  --seq_select_prob 0.0  --per_gpu_train_batch_size 16   --max_seq_length 128   --learning_rate 2e-5    --seed  42 `
+
 --------
 >  run TraceNet+XLNet/roberta/glove
 > TraceNet+X:  `python run_sentiment_classifier.py   --model_type  xlnet_tracenet   --model_name_or_path ../xlnet_base_cased   --do_train   --do_eval    --output_hidden_states   --output_item_weights   --per_gpu_eval_batch_size 500   --overwrite_output_dir   --output_dir   sst_xlnetTraceNet_5642/    --task_name sst-5    --data_dir ../dataset/SST_5/   --num_hubo_layers  3  --method 'mean'  --proactive_masking    --seq_select_prob  0.2  --dropout_prob 0.3  --output_feature 128  --per_gpu_train_batch_size 16     --max_seq_length 64   --learning_rate 2e-5   --num_train_epochs 10.0   --seed 1 `

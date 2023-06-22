@@ -1,9 +1,8 @@
-import logging, os, random, torch
+import csv
+import json
+import logging, os, torch
 import numpy as np
-# from transformers.file_utils import is_tf_available
 from torch.utils.data import TensorDataset
-from transformers.data.processors.utils import DataProcessor
-# from transformers import glue_processors
 
 
 logger = logging.getLogger(__name__)
@@ -17,13 +16,13 @@ def convert_examples_to_features(examples, max_length, tokenizer):
         # ==== backbone ====
         start, end = example.text_b[0], example.text_b[1]
         sentence = example.text_a
-        tokens_0_start = tokenizer.tokenize(sentence[:start])
-        tokens_start_end = tokenizer.tokenize(sentence[start:end])
-        tokens_end_last = tokenizer.tokenize(sentence[end:])
-        tokens = [tokenizer.cls_token] + tokens_0_start + tokenizer.tokenize("[ENTITY]") + tokens_start_end + tokenizer.tokenize("[ENTITY]") + tokens_end_last + [tokenizer.sep_token]
+        tokens_0_start = tokenizer.tokenize(' '.join(sentence[:start]))
+        tokens_start_end = tokenizer.tokenize(' '.join(sentence[start:end]))
+        tokens_end_last = tokenizer.tokenize(' '.join(sentence[end:]))
+        tokens = [tokenizer.cls_token] + tokens_0_start + tokens_start_end + tokens_end_last + [tokenizer.sep_token]
         tokens = tokens[: max_length]
         start = 1 + len(tokens_0_start)
-        end = 1 + len(tokens_0_start) + 1 + len(tokens_start_end)
+        end = 1 + len(tokens_0_start) + len(tokens_start_end)
         segment_ids = [0] * len(tokens)
         input_ids = tokenizer.convert_tokens_to_ids(tokens)
         input_mask = [1] * len(input_ids)
@@ -40,8 +39,7 @@ def convert_examples_to_features(examples, max_length, tokenizer):
         start_id = np.zeros(max_length)
         if start >= max_length:
             start = 0  # 如果entity被截断了，就使用CLS位代替
-        start_id[start] = 1
-        # start_id[end] = 1
+        start_id[start: end] = 1
 
         features.append(
             InputFeatures(input_ids=input_ids,
@@ -70,6 +68,32 @@ class InputFeatures(object):
 
         self.label_id = label_id
 
+class DataProcessor(object):
+
+    def get_train_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_test_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_labels(self):
+        raise NotImplementedError()
+
+    def _read_tsv(cls, input_file, quotechar=None):
+        with open(input_file, "r", encoding="utf-8-sig") as f:
+            reader = csv.reader(f, delimiter="\t", quotechar=quotechar)
+            lines = []
+            for line in reader:
+                lines.append(line)
+            return lines
+
+    def _read_json(cls, input_file):
+        with open(input_file, 'r', encoding='utf8') as f:
+            return json.load(f)
+
 
 class ABSAProcessor(DataProcessor):
 
@@ -78,6 +102,10 @@ class ABSAProcessor(DataProcessor):
         return self._create_examples(lines)
 
     def get_dev_examples(self, data_dir, dataset_type):
+        lines = self._read_json(os.path.join(data_dir, "{}.json".format(dataset_type)))
+        return self._create_examples(lines)
+
+    def get_test_examples(self, data_dir, dataset_type):
         lines = self._read_json(os.path.join(data_dir, "{}.json".format(dataset_type)))
         return self._create_examples(lines)
 
@@ -94,8 +122,8 @@ class ABSAProcessor(DataProcessor):
             text_a = line['token']
             aspects = line['aspects']
             for aspect in aspects:
-                text_b = (line['from'], line['to'])
-                label = line['polarity']
+                text_b = (aspect['from'], aspect['to'])
+                label = aspect['polarity']
                 label = label_list.index(label)
                 examples.append(
                     InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
@@ -116,76 +144,54 @@ output_modes = {
 }
 
 
-def load_and_cache_examples(args, task, tokenizer, evaluate):
+def load_and_cache_examples(args, task, tokenizer, dataset_type, evaluate):
     if args.local_rank not in [-1, 0] and not evaluate:
         torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
     processor = processors[task]()
     output_mode = output_modes[task]
     # Load data features from cache or dataset file
-    if evaluate == 'test':
-        cached_features_file = os.path.join(
-            args.data_dir,
-            "cached_{}_{}_{}_{}".format(
-                "test",
-                list(filter(None, args.model_name_or_path.split("/"))).pop(),
-                str(args.max_seq_length),
-                str(task),
-            ),
-        )
-        if os.path.exists(cached_features_file) and not args.overwrite_cache:
-            logger.info("Loading features from cached file %s", cached_features_file)
-            features = torch.load(cached_features_file)
-        else:
-            logger.info("Creating features from dataset file at %s", args.data_dir)
-            label_list = processor.get_labels()
-            examples = (
-                processor.get_test_examples(args.data_dir)
-            )
-            features = convert_examples_to_features(
-                examples, max_length=args.max_seq_length, tokenizer=tokenizer,
-            )
-            if args.local_rank in [-1, 0]:
-                logger.info("Saving features into cached file %s", cached_features_file)
-                torch.save(features, cached_features_file)
+
+    cached_features_file = os.path.join(
+        args.data_dir,
+        "cached_{}_{}_{}_{}".format(
+            dataset_type,
+            list(filter(None, args.model_name_or_path.split("/"))).pop(),
+            str(args.max_seq_length),
+            str(task),
+        ),
+    )
+    if os.path.exists(cached_features_file) and not args.overwrite_cache:
+        logger.info("Loading features from cached file %s", cached_features_file)
+        features = torch.load(cached_features_file)
     else:
-        cached_features_file = os.path.join(
-            args.data_dir,
-            "cached_{}_{}_{}_{}".format(
-                "dev" if evaluate == 'dev' else "train",
-                list(filter(None, args.model_name_or_path.split("/"))).pop(),
-                str(args.max_seq_length),
-                str(task),
-            ),
-        )
-        if os.path.exists(cached_features_file) and not args.overwrite_cache:
-            logger.info("Loading features from cached file %s", cached_features_file)
-            features = torch.load(cached_features_file)
+        logger.info("Creating features from dataset file at %s", args.data_dir)
+        label_list = processor.get_labels()
+        if dataset_type == 'train':
+            examples = processor.get_train_examples(args.data_dir, dataset_type)
+        elif dataset_type == 'dev':
+            examples = processor.get_dev_examples(args.data_dir, dataset_type)
         else:
-            logger.info("Creating features from dataset file at %s", args.data_dir)
-            label_list = processor.get_labels()
-            examples = (
-                processor.get_dev_examples(args.data_dir) if evaluate else processor.get_train_examples(args.data_dir)
-            )
-            features = convert_examples_to_features(
-                examples, max_length=args.max_seq_length, tokenizer=tokenizer,
-            )
-            if args.local_rank in [-1, 0]:
-                logger.info("Saving features into cached file %s", cached_features_file)
-                torch.save(features, cached_features_file)
+            examples = processor.get_test_examples(args.data_dir, dataset_type)
+        features = convert_examples_to_features(
+            examples, max_length=args.max_seq_length, tokenizer=tokenizer,
+        )
+        if args.local_rank in [-1, 0]:
+            logger.info("Saving features into cached file %s", cached_features_file)
+            torch.save(features, cached_features_file)
 
     if args.local_rank == 0 and not evaluate:
         torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-    all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
-    all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
-    if output_mode == "classification":
-        all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
-    else:
-        raise ValueError("No other `output_mode` .")
+    all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
 
-    dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
+    all_start_ids = torch.tensor([f.start_id for f in features], dtype=torch.float)
+    all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
+
+    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids,
+                                all_start_ids, all_label_ids)
     return dataset
 
