@@ -28,7 +28,7 @@ from transformers import (
 # from transformers import glue_compute_metrics as compute_metrics
 from data_utils import output_modes, processors, load_and_cache_examples
 from tracenet import XLNetTraceNetForSequenceClassification, RobertTraceNetForSequenceClassification
-from absa_modeling import RoBERTaForABSA
+from absa_modeling import RoBERTaForABSA, RoBERTaTraceNetForABSA
 from sklearn.metrics import f1_score
 
 
@@ -56,14 +56,14 @@ MODEL_CLASSES = {
     # "unilm": (None, UniLMForSequenceClassification, BertTokenizer),
     # "unilm_tracenet": (None, UniLMTraceNetForSequenceClassification, BertTokenizer),
     # "xlnet_tracenet": (XLNetConfig, XLNetTraceNetForSequenceClassification, XLNetTokenizer),
-    "roberta_tracenet": (RobertaConfig, RoBERTaForABSA, RobertaTokenizer),
+    "roberta_tracenet": (RobertaConfig, RoBERTaTraceNetForABSA, RobertaTokenizer),
 }
 
 
 def f1(preds, labels):
     f1 = f1_score(y_true=labels, y_pred=preds, average='micro')
     results = {'micro-f1': f1}
-    return f1
+    return results
 
 
 def get_args():

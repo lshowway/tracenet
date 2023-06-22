@@ -133,14 +133,17 @@ class ABSAProcessor(DataProcessor):
 
 tasks_num_labels = {
     "laptop": 3,
+    "restaurants": 3,
 }
 
 processors = {
     "laptop": ABSAProcessor,
+    "restaurants": ABSAProcessor,
 }
 
 output_modes = {
     "laptop": "classification",
+    "restaurants": "classification",
 }
 
 
