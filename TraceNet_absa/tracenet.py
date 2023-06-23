@@ -150,6 +150,7 @@ class TraceNetModel(nn.Module):
     def forward(self, attention_mask, hidden_states, item_weights, proactive_masking):
         all_hidden_states = ()
         all_item_weights = ()
+        all_A_hat = ()
         outputs = ()
         if self.output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
@@ -163,10 +164,12 @@ class TraceNetModel(nn.Module):
             A_hat = layer_outputs[2]
             if self.output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states_i,)
+                all_A_hat = all_A_hat + (A_hat,)
             if self.output_item_weights:
                 all_item_weights = all_item_weights + (item_weights,)
         if self.output_hidden_states:
             outputs = outputs + (all_hidden_states,)
+            outputs = outputs + (all_A_hat,)
         if self.output_item_weights:
             outputs = outputs + (all_item_weights,)
         return outputs
